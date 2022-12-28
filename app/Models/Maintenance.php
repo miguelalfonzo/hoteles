@@ -19,9 +19,13 @@ class Maintenance extends Model
    		
    		$type  = $request->type;
    		
-    	$list  = DB::select('CALL sp_web_get_select_maintenance (?)', array($type));
+    	$list  = DB::select('CALL sp_pms_get_select_maintenance (?)', array($type));
 
     	return $list;
     
     }
+
+    
+    
+    
 }

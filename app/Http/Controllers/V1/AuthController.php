@@ -18,33 +18,46 @@ class AuthController extends Controller
     public function register(Request $request)
     {
        
-        $data = $request->only('name', 'email', 'password');
+        $data = $request->only('email', 'password', 'name');
         
         $validator = Validator::make($data, [
-            'name' => 'required|string',
+            'name'=>'required|string',
             'email' => 'required|email|unique:users',
             'password' => 'required|string|min:6|max:50',
         ]);
         
 
         if ($validator->fails()) {
-            return response()->json(['error' => $validator->messages()], 400);
+            
+
+            $middleRpta = $this->setRpta('warning','validator fails',$validator->messages());
+
+            return response()->json($middleRpta, 400);
         }
        
         $user = User::create([
-            'name' => $request->name,
+            'name'=>$request->name,
             'email' => $request->email,
             'password' => bcrypt($request->password)
+
         ]);
         
 
         $credentials = $request->only('email', 'password');
         
-        return response()->json([
-            'message' => 'User created',
+        $data = array(
+
+          
             'token' => JWTAuth::attempt($credentials),
             'user' => $user
-        ], Response::HTTP_OK);
+        );
+
+
+
+         $middleRpta = $this->setRpta('ok','user created',$data);
+
+        return response()->json($middleRpta, Response::HTTP_OK);
+
     }
     
     public function authenticate(Request $request)
@@ -58,28 +71,28 @@ class AuthController extends Controller
         ]);
         
         if ($validator->fails()) {
-            return response()->json(['error' => $validator->messages()], 400);
+
+             $middleRpta = $this->setRpta('warning','validator fails',$validator->messages());
+
+            return response()->json($middleRpta, 400);
         }
       
         try {
             if (!$token = JWTAuth::attempt($credentials)) {
                 
-                return response()->json([
-                    'message' => 'Login failed',
-                ], 401);
+                return response()->json($this->setRpta('error','login failed',[]), 401);
             }
         } catch (JWTException $e) {
             
-            return response()->json([
-                'message' => 'Error',
-            ], 500);
+            return response()->json($this->setRpta('error',$e->getMessage(),[]), Response::HTTP_INTERNAL_SERVER_ERROR);
         }
         
 
-        return response()->json([
-            'token' => $token,
-            'user' => Auth::user()
-        ]);
+         $data= array('token' => $token,'user' => Auth::user());
+
+         return response()->json($this->setRpta('ok','data success',$data), 200);
+
+        
     }
 
     
@@ -91,21 +104,30 @@ class AuthController extends Controller
         ]);
         
         if ($validator->fails()) {
-            return response()->json(['error' => $validator->messages()], 400);
+
+            $middleRpta = $this->setRpta('warning','validator fails',$validator->messages());
+
+            return response()->json($middleRpta, 400);
+
+            
         }
         try {
             
             JWTAuth::invalidate($request->token);
-            return response()->json([
-                'success' => true,
-                'message' => 'User disconnected'
-            ]);
-        } catch (JWTException $exception) {
             
-            return response()->json([
-                'success' => false,
-                'message' => 'Error'
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+
+
+            $middleRpta = $this->setRpta('ok','user disconnected',[]);
+
+            return response()->json($middleRpta, 400);
+
+        } catch (JWTException $e) {
+            
+          
+
+            $middleRpta = $this->setRpta('error',$e->getMessage(),[]);
+
+            return response()->json($middleRpta, Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
     
@@ -119,11 +141,23 @@ class AuthController extends Controller
         
         $user = JWTAuth::authenticate($request->token);
         
-        if(!$user)
-            return response()->json([
-                'message' => 'Invalid token / token expired',
-            ], 401);
         
-        return response()->json(['user' => $user]);
+        if(!$user){
+
+             return response()->json($this->setRpta('error','invalid token / token expired',[]), 401);
+
+            
+        }
+        
+        $data= array(
+
+            'user' => $user ,
+            'token'=>$request->token
+        );
+        return response()->json($this->setRpta('ok','success ',$data), 200);
+
+
+
+        
     }
 }

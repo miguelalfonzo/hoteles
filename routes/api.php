@@ -7,32 +7,68 @@ use App\Http\Controllers\V1\ProductsController;
 use App\Http\Controllers\V1\AuthController;
 use App\Http\Controllers\V1\BookingController;
 use App\Http\Controllers\V1\MaintenanceController;
-
-
+use App\Http\Controllers\V1\PaymentsController;
+use App\Http\Controllers\V1\PmsController;
 
 
 
 Route::prefix('v1')->group(function () {
 
+	
+
+	  Route::group(['prefix' => 'payments'], function () {
+
+       
+	 	Route::get('culqui', [PaymentsController::class, 'culqui']);
+
+		Route::post('culquiPayment', [PaymentsController::class, 'culquiPayment']);
+
+		Route::get('paypal', [PaymentsController::class, 'paypal']);
+
+		Route::get('paypalPayment', [PaymentsController::class, 'paypalPayment']);
+    });
+	
 
 	 Route::group(['prefix' => 'booking'], function () {
 
-       
 	 	Route::get('search', [BookingController::class, 'search']);
 
+	 	Route::get('viewAll', [BookingController::class, 'viewAll']);
+
+	 	Route::get('coupon', [BookingController::class, 'coupon']);
+
 	 	Route::post('create', [BookingController::class, 'create']);
+
+	 	Route::put('confirm', [BookingController::class, 'confirm']);
+
+	 	Route::delete('delete', [BookingController::class, 'delete']);
 		
     });
 
 
 	  Route::group(['prefix' => 'maintenance'], function () {
 
-       
+        
 	 	Route::get('options', [MaintenanceController::class, 'options']);
 		
     });
 
 
+
+	   Route::group(['prefix' => 'pms'], function () {
+
+	   		Route::prefix('dashboard')->group(function () {
+	
+	   			Route::get('today', [PmsController::class, 'today']);
+
+	 			Route::get('indicators', [PmsController::class, 'indicators']);
+
+	
+			});
+       
+	 	
+		
+    	});
 
 	 
 
@@ -42,8 +78,7 @@ Route::prefix('v1')->group(function () {
 
     Route::post('login', [AuthController::class, 'authenticate']);
     Route::post('register', [AuthController::class, 'register']);
-    Route::get('products', [ProductsController::class, 'index']);
-    Route::get('products/{id}', [ProductsController::class, 'show']);
+    
 
     Route::group(['middleware' => ['jwt.verify']], function() {
       
@@ -51,8 +86,6 @@ Route::prefix('v1')->group(function () {
         
         Route::post('logout', [AuthController::class, 'logout']);
         Route::post('get-user', [AuthController::class, 'getUser']);
-        Route::post('products', [ProductsController::class, 'store']);
-        Route::put('products/{id}', [ProductsController::class, 'update']);
-        Route::delete('products/{id}', [ProductsController::class, 'destroy']);
+      
     });
 });

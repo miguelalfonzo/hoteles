@@ -12,79 +12,110 @@ class Booking extends Model
 {
     use HasFactory;
 
-   
-   protected static function search($request){
+    protected static function validateCoupon($coupon){
+
+    	$list  = DB::select('CALL sp_web_validate_coupon (?)', array($coupon));
+
+    	return $list;
+
+    }
+
+
+    protected static function update_temporary_book(){
+
+    	DB::update('CALL sp_web_update_temporary_book', array());
+
+    }
+    protected static function confirmPayBooking($hotel,$id,$user,$type,$reference,$description,$applyIgv,$coupon,$amount){
+
+
+    	DB::update('CALL sp_web_confirm_pay_booking (?,?,?,?,?,?,?,?,?)', array($hotel,$id,$user,$type,$reference,$description,$applyIgv,$coupon,$amount));
+
+
+    }
+
+
+   protected static function deleteBooking($hotel,$id){
+
+
+   	DB::delete('CALL sp_web_delete_booking (?,?)', array($hotel,$id));
+
+   }
+
+   protected static function searchRooms($request){
 
 
    		
-   		$hotel    = $request->hotel;
-   		$fromDate = Carbon::parse($request->fromDate)->format('Y-m-d');
-   		$toDate   = Carbon::parse($request->toDate)->format('Y-m-d');
-   		
+   		$hotel     = $request->hotel;
+   		$checkIn   = Carbon::parse($request->checkIn)->format('Y-m-d');
+   		$checkOut  = Carbon::parse($request->checkOut)->format('Y-m-d');
+   		$lang      = $request->lang;
 
 
-    	$list  = DB::select('CALL sp_web_availability_typeroom (?,?,?)', array($hotel,$fromDate,$toDate));
+    	$list  = DB::select('CALL sp_web_available_typeroom (?,?,?,?)', array($hotel,$checkIn,$checkOut,$lang));
 
     	return $list;
     
     }
 
 
-    protected static function create($request){
+    protected static function searchBeds($request){
 
-    	$hotel 			= $request->hotel ;
+
+   		
+   		$hotel    = $request->hotel;
+   		$checkIn  = Carbon::parse($request->checkIn)->format('Y-m-d');
+   		$checkOut = Carbon::parse($request->checkOut)->format('Y-m-d');
+   		$lang 	  = $request->lang;
+
+
+    	$list  = DB::select('CALL sp_web_available_beds (?,?,?,?)', array($hotel,$checkIn,$checkOut,$lang));
+
+    	return $list;
+    
+    }
+
+    protected static function createUserBooking($country,$guestFirstName,$guestLastName,$guestEmail,$guestPhone,$user){
+
+        $list  = DB::select('CALL sp_web_create_user (?,?,?,?,?,?)', array($country,$guestFirstName,$guestLastName,$guestEmail,$guestPhone,$user));
+
+      return $list;
+
+    }
+
+    protected static function create($request,$ids,$holder){
+
+    	  $hotel 			= $request->hotel ;
         $agent 			= $request->agent ;
-        $bookingStatus 	= $request->bookingStatus ;
-        $country 		= $request->country ;
-        $guestFirstName = trim($request->guestFirstName) ;
-        $guestLastName 	= trim($request->guestLastName) ;
-        $guestEmail 	= trim($request->guestEmail) ;
-        $guestPhone 	= trim($request->guestPhone) ;
+       
+        $checkIn 		= Carbon::parse($request->checkIn)->format('Y-m-d');
+        $checkOut 		= Carbon::parse($request->checkOut)->format('Y-m-d');
         $dateArrival 	= Carbon::parse($request->dateArrival)->format('Y-m-d');
         $arrivalTime 	= $request->arrivalTime ;
-        $adults 		= $request->adults ;
-        $kids 			= $request->kids ;
-        $dateFrom 		= Carbon::parse($request->dateFrom)->format('Y-m-d');
-        $dateTo 		= Carbon::parse($request->dateTo)->format('Y-m-d');
-        $coupon 		= $request->coupon ;
         $specialRequest = $request->specialRequest ;
         $origen 		= $request->origen ;
-        $paymentStatus  = $request->paymentStatus  ;
-        $paymentType 	= $request->paymentType  ;
-        $applyIgv 		= $request->applyIgv ;
-        $amount 		= $request->amount ;
-        $quantity 		= $request->quantity ;
-        $cardType 		= $request->cardType ;
-        $cardNumber 	= $request->cardNumber ;
-        $cvv 			= $request->cvv ;
-        $cardExpiration = $request->cardExpiration ;
-        $codeReference 	= $request->codeReference ;
-        $description 	= $request->description ;
-        $roomsTypeCount = $request->roomsTypeCount ;
+        $temporary 	= $request->temporary ;
+        
 
 
-        $booking  = DB::select('CALL sp_web_insert_booking (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', array(
-        $hotel,$agent,$bookingStatus,$country ,$guestFirstName ,$guestLastName ,$guestEmail,$guestPhone,$dateArrival,$arrivalTime,$adults ,$kids,$dateFrom,$dateTo,$coupon,$specialRequest,$origen ,$paymentStatus,$paymentType ,$applyIgv ,$amount ,$quantity ,$cardType ,$cardNumber ,$cvv ,$cardExpiration,$codeReference ,$description ,$roomsTypeCount ));
+
+        $booking  = DB::select('CALL sp_web_insert_booking (?,?,?,?,?,?,?,?,?,?,?)', array(
+        $hotel,$agent,$checkIn,$checkOut,$dateArrival,$arrivalTime,$specialRequest,$origen ,$ids,$temporary,$holder  ));
 
     	return $booking;
 
     }
 
-    protected static function validateBeforeInsertBooking($request){
+    protected static function validateKeysInputBooking($request){
 
-    	$roomsTypeCount = trim($request->roomsTypeCount);
-   		$dateFrom = Carbon::parse($request->dateFrom)->format('Y-m-d');
-   		$dateTo   = Carbon::parse($request->dateTo)->format('Y-m-d');
+    	
    		$hotel 	= $request->hotel ;
    		$agent 	= $request->agent ;
-
-   		$bookingStatus 	= $request->bookingStatus ;
-   		$paymentStatus 	= $request->paymentStatus ;
-   		$paymentType 	= $request->paymentType ;
+   	
    		$origen 		= $request->origen ;
    		
 
-    	$rpta  = DB::select('CALL sp_web_before_insert_booking (?,?,?,?,?,?,?,?,?)', array($roomsTypeCount,$dateFrom,$dateTo,$hotel,$agent,$bookingStatus,$paymentStatus,$paymentType,$origen));
+    	$rpta  = DB::select('CALL sp_web_before_insert_booking (?,?,?)', array($hotel,$agent,$origen));
 
     	return $rpta;
 

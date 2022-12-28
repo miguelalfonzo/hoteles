@@ -15,7 +15,7 @@ class MaintenanceController extends Controller
   
 
 
-    public function options(Request $request)
+    protected function options(Request $request)
     {
         
 
@@ -30,7 +30,7 @@ class MaintenanceController extends Controller
         
         if ($validator->fails()) {
 
-            $middleRpta = $this->setRpta('error','validator fails',$validator->messages());
+            $middleRpta = $this->setRpta('warning','validator fails',$validator->messages());
 
             return response()->json($middleRpta, 400);
         }
