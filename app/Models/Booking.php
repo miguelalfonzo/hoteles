@@ -12,9 +12,9 @@ class Booking extends Model
 {
     use HasFactory;
 
-    protected static function validateCoupon($coupon){
+    protected static function validateCoupon($coupon,$hotel){
 
-    	$list  = DB::select('CALL sp_web_validate_coupon (?)', array($coupon));
+    	$list  = DB::select('CALL sp_web_validate_coupon (?,?)', array($coupon,$hotel));
 
     	return $list;
 

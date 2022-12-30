@@ -288,7 +288,8 @@ class BookingController extends Controller
 
             $validator = Validator::make($data, [
                 
-                'coupon'=>'nullable|string|max:100'
+                'coupon'=>'nullable|string|max:100',
+                'hotel'=>'required|numeric'
                 
             ]);
         
@@ -300,7 +301,7 @@ class BookingController extends Controller
             }
 
 
-        $validate = Booking::validateCoupon($request->coupon);
+        $validate = Booking::validateCoupon($request->coupon,$request->hotel);
 
         $middleRpta = $this->setRpta($validate[0]->STATUS,$validate[0]->MESSAGE,floatval($validate[0]->DATA));
 
